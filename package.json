@@ -16,5 +16,9 @@
   "bugs": {
     "url": "https://github.com/ChrishanJay/SathyapalaBot/issues"
   },
-  "homepage": "https://github.com/ChrishanJay/SathyapalaBot#readme"
+  "homepage": "https://github.com/ChrishanJay/SathyapalaBot#readme",
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "twit": "^2.2.11"
+  }
 }

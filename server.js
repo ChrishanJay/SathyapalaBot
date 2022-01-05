@@ -1,14 +1,20 @@
-var http = require('http');
+require('dotenv').config()
 
-const hostname = 'localhost';
-const port = 3000;
+const Twit = require('twit');
 
-const server = http.createServer((req, res) => {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/plain');
-  res.end('Hello World!\n');
+const T = new Twit({
+  consumer_key: process.env.APPLICATION_CONSUMER_KEY,
+  consumer_secret: process.env.APPLICATION_CONSUMER_SECRET,
+  access_token: process.env.ACCESS_TOKEN,
+  access_token_secret: process.env.ACCESS_TOKEN_SECRET
 });
 
-server.listen(port, hostname, () => {
-  console.log(`Server running at http://${hostname}:${port}/`);
-});
+const stream = T.stream('statuses/filter', {track: '@SathyapalaBot'});
+
+stream.on('tweet', function (tweet) {
+    console.log(tweet)
+
+    T.get('statuses/:id', {id: tweet.in_reply_to_status_id_str}, function(err, data, response) {
+      console.log(data)
+    })
+  })
