@@ -13,12 +13,16 @@ const app = express()
 const server = http.createServer(app)
 const io = socketIO(server)
 
+app.get('/', (req, res) => {
+  res.sendFile(path.resolve(__dirname, '../', 'client', 'index.html'))
+})
+
 const rulesURL = 'https://api.twitter.com/2/tweets/search/stream/rules'
 const streamURL = 'https://api.twitter.com/2/tweets/search/stream?tweet.fields=created_at,public_metrics&expansions=author_id'
 
 
 const rules = [{
-  value: '#අපිතමාහොඳටමකලේ'
+  value: 'SriLanka'
 }]
 
 // Get Stream Rules
@@ -70,7 +74,7 @@ async function deleteRules(rules) {
   return response.body
 }
 
-function streamTweets() {
+function streamTweets(socket) {
   const stream = needle.get(streamURL, {
     headers: {
       Authorization: `Bearer ${TOKEN}`
@@ -80,17 +84,17 @@ function streamTweets() {
   stream.on('data', (data) => {
     try {
       const json = JSON.parse(data)
-      console.log(json)
+      socket.emit('tweet', json)
     } catch (error) {
 
     }
   })
-
 }
 
-(async () => {
-  let currentRules
+io.on('connection', async () => {
+  console.log('Client Connected...')
 
+  let currentRules
   try {
     // Get all stream rules
     currentRules = await getRules()
@@ -101,11 +105,12 @@ function streamTweets() {
 
     // Set rules based on array above
     await setRules()
-    console.log('########################')
   } catch (error) {
     console.log(error)
     process.exit(1)
   }
 
-  streamTweets()
-})()
+  streamTweets(io)
+})
+
+server.listen(PORT, () => console.log(`Listening on port ${PORT}`))
