@@ -22,7 +22,7 @@ const streamURL = 'https://api.twitter.com/2/tweets/search/stream?tweet.fields=c
 
 
 const rules = [{
-  value: 'SriLanka'
+  value: '@SathyapalaBot'
 }]
 
 // Get Stream Rules
@@ -49,7 +49,7 @@ async function setRules() {
     }
   })
 
-  return response.body
+  console.log(response.body)
 }
 
 // Delete Stream Rules
@@ -83,12 +83,27 @@ function streamTweets(socket) {
 
   stream.on('data', (data) => {
     try {
-      const json = JSON.parse(data)
-      socket.emit('tweet', json)
+      console.log(data)
+      //const json = JSON.parse(data)
+      //getTweetInfo(json.data.id)
+      //socket.emit('tweet', json)
     } catch (error) {
-
+      console.log(error)
     }
   })
+}
+
+async function getTweetInfo(id) {
+
+  const reTweetedByURL = `https://api.twitter.com/2/tweets/${id}/retweeted_by`
+
+  const response = await needle('get', reTweetedByURL, {
+    headers: {
+      Authorization: `Bearer ${TOKEN}`
+    }
+  })
+
+  console.log(response.body)
 }
 
 io.on('connection', async () => {
