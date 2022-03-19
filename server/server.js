@@ -2,11 +2,19 @@ const http = require('http')
 const path = require('path')
 const express = require('express')
 const socketIO = require('socket.io')
+const mysql = require('mysql2')
 
 const needle = require('needle')
 const config = require('dotenv').config()
 const TOKEN = process.env.BEARER_TOKEN
 const PORT = process.env.PORT || 3001
+
+const db = mysql.createPool({
+  host: 'localhost',
+  user: 'root',
+  password: '0112232228',
+  database: 'SathyapalaDB'
+})
 
 const app = express()
 
@@ -150,6 +158,7 @@ async function getTweetInfo(json) {
   const tweetInfo = infoResponse.body.data
   console.log(tweetInfo)
 
+
   const authorInfoURL = `https://api.twitter.com/2/users/${tweetInfo.author_id}?user.fields=verified,username`
   const authorInfoResponse = await needle('get', authorInfoURL, {
     headers: {
@@ -159,6 +168,29 @@ async function getTweetInfo(json) {
 
   console.log("********** Author ***************")
   console.log(authorInfoResponse.body)
+
+  var isGenuine = text.toUpperCase().includes('TRUE')
+
+  insertUsers(tweetInfo.id.toString(), tweetInfo.author_id.toString(), 1, authorInfoResponse.body.data.verified, 0, 0, isGenuine)
+}
+
+async function insertUsers(tweetId, userId, isAuthor = 0, isVerified = 0, isRetweet = 0, isLike = 0, isGenuine = 0) {
+
+  console.log("****** Values Start *******")
+  console.log("Tweet ID : " + tweetId)
+  console.log("User ID : " + userId)
+  console.log("IsAuthor : " + isAuthor)
+  console.log("isVerified : " + isVerified)
+  console.log("isRetweet : " + isRetweet)
+  console.log("isLike : " + isLike)
+  console.log("isGenuine: " + isGenuine)
+  console.log("****** Values End *******")
+
+  const sqlInsert = "INSERT INTO users (tweet_id, user_id, is_author, is_verified, is_retweet, is_like, is_genuine) values (?,?,?,?,?,?,?)"
+  db.query(sqlInsert, [tweetId, userId, isAuthor, isVerified, isRetweet, isLike, isGenuine], (error, result) => {
+    console.log("Result : " + result)
+    console.log("Error : " + error)
+  })
 }
 
 io.on('connection', async () => {

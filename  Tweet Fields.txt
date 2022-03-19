@@ -1,0 +1,64 @@
+{ author_id: '2459987869',
+  id: '1504229847341674500',
+  referenced_tweets: [ { type: 'replied_to', id: '1504209599108456452' } ],
+  text: '@BusinessInsider @SathyapalaBot' }
+@BusinessInsider @SathyapalaBot
+********** Retweet ***************
+{ data:
+   [ { id: '1492979753833451524',
+       name: 'ESTemple',
+       username: 'eMshily001' },
+     { id: '264854883',
+       name: 'Miguel Angel Ortiz C',
+       username: 'migaoc1974' },
+     { id: '478189025',
+       name: 'Jenna ConstantinePhD',
+       username: 'kaplanikids' },
+     { id: '295297582', name: 'Abdulaziz', username: 'a_abdulaziz_a' },
+     { id: '46579943', name: 'Toi', username: 'pinklightbulb' },
+     { id: '892471352',
+       name: 'Lela Winston',
+       username: 'lela_winston' },
+     { id: '940213619978936320',
+       name: 'The DoK',
+       username: 'DoKscho' } ],
+  meta:
+   { result_count: 7,
+     next_token: '7140dibdnow9c7btw480y1om1cuisydkjc3lol9q33zg2' } }
+********** Like ***************
+{ data:
+   [ { id: '1320772005654913028',
+       name: 'أكرم مانوئيل جميل',
+       username: 'AkmKab2022' },
+     { id: '885608292881498118',
+       name: 'roy',
+       username: 'roythebadman' },
+     { id: '1501562711431278594',
+       name: 'Wen Ramen',
+       username: 'maruchanraised' },
+     { id: '1423779782991523841',
+       name: 'Josh Roy',
+       username: 'realJoshRoy' },
+     { id: '331970372', name: 'Mark DeWitt', username: 'maxhostile' },
+     { id: '1501008931619016716',
+       name: 'dæg',
+       username: 'backwards1011' } ],
+  meta:
+   { result_count: 6,
+     next_token: '7140dibdnow9c7btw480y1om1cujvonjrxjwqsdpzbrqv' } }
+********** Info ***************
+{ public_metrics:
+   { retweet_count: 9,
+     reply_count: 1,
+     like_count: 9,
+     quote_count: 2 },
+  text:
+   'A Google executive apologized to employees after tweeting about the merits of buying and selling people for profit. \'The connections to slave trading that should have been obvious to me simply weren\'t,\' he wrote. https://t.co/RYUDyCMag1',
+  author_id: '20562637',
+  id: '1504209599108456452' }
+********** Author ***************
+{ data:
+   { username: 'BusinessInsider',
+     id: '20562637',
+     name: 'Business Insider',
+     verified: true } }
