@@ -1,8 +1,8 @@
 {
-  "name": "typescripttut",
+  "name": "sathyapalabot",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/app.js",
   "scripts": {
     "start": "node dist/app.js",
     "prod": "NODE_ENV=prod nodemon src/app.ts",
