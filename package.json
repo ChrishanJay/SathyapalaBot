@@ -1,17 +1,25 @@
 {
   "name": "sathyapalabot",
   "version": "1.0.0",
-  "description": "",
-  "main": "dist/app.js",
+  "description": "Twitter bot seeking the genuineness of tweets",
+  "main": "index.js",
   "scripts": {
     "start": "node dist/app.js",
     "prod": "NODE_ENV=prod nodemon src/app.ts",
     "dev": "NODE_ENV=dev nodemon src/app.ts",
     "build": "tsc -p ."
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ChrishanJay/SathyapalaBot.git"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ChrishanJay/SathyapalaBot/issues"
+  },
+  "homepage": "https://github.com/ChrishanJay/SathyapalaBot#readme",
   "dependencies": {
     "@types/mysql": "^2.15.21",
     "dotenv": "^16.0.0",
