@@ -81,5 +81,32 @@ import { TweetLikingUsersV2Paginator, TweetRetweetersUsersV2Paginator, UserV2Res
             })
         });
 
+    const getUserData =async (userID: string) => 
+        new Promise((resolve, reject) => {
 
-export { addLikedData, addRetweetedData, addAuthorData }
+            let query: string = `SELECT 
+                                    COUNT(CASE WHEN user_id='${userID}' AND is_genuine=1 THEN 1 END) as TrueCount,
+                                    COUNT(CASE WHEN user_id='${userID}' AND is_genuine=0 THEN 1 END) as FakeCount
+                                FROM users;`
+
+            Connect()
+            .then(connection => {
+                Query(connection, query)
+                .then(results => {
+                    resolve(results);
+                })
+                .catch(error => {
+                    reject(error);
+                })
+                .finally(() => {
+                    connection.end();
+                })
+            })
+            .catch(error => {
+                reject(error);
+            })
+
+        });
+
+
+export { addLikedData, addRetweetedData, addAuthorData, getUserData }

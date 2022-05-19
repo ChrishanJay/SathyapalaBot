@@ -1,5 +1,5 @@
 import mysql from 'mysql2';
-let config;
+let config: any;
 
 import dotenv from 'dotenv';
 dotenv.config();

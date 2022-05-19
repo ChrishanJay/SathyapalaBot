@@ -1,8 +1,6 @@
 import { TwitterApi } from 'twitter-api-v2'
-import { addAuthorData, addLikedData, addRetweetedData } from './db';
+import { addAuthorData, addLikedData, addRetweetedData, getUserData } from './db';
 import { ResultSetHeader } from 'mysql2';
-import { resolve } from 'path';
-import { rejects } from 'assert';
 
 
 export class Twitter {
@@ -83,6 +81,27 @@ export class Twitter {
         
         console.log(response);
         
+    }
+
+    
+
+
+    async calculateScore(client: TwitterApi) {
+        //const author = await client.v2.user(this.authorId, { 'user.fields': ['id', 'verified'] });
+
+        getUserData(this.authorId)
+            .then(results => {
+                let json = JSON.parse(JSON.stringify(results));
+                console.log('TrueCount : %d', json[0]['TrueCount']);
+                console.log('FakeCount : %d', json[0]['FakeCount']);
+
+                
+                
+            }).catch(error => {
+                console.log(error);
+                
+            });
+
     }
 
 }
