@@ -1,6 +1,7 @@
 import { TwitterApi } from 'twitter-api-v2'
 import { addAuthorData, addLikedData, addRetweetedData, getUserData } from './db';
 import { ResultSetHeader } from 'mysql2';
+import { TweetLikingUsersV2Paginator, TweetRetweetersUsersV2Paginator } from 'twitter-api-v2';
 
 
 export class Twitter {
@@ -89,19 +90,69 @@ export class Twitter {
     async calculateScore(client: TwitterApi) {
         //const author = await client.v2.user(this.authorId, { 'user.fields': ['id', 'verified'] });
 
+        Promise.all([
+            this.calculateAuthorScore,
+            this.calculateLikeScore(client),
+            this.calculateRetweetScore(client)
+        ]).then((results) => {
+            console.log(results);
+        })
+
+    }
+
+
+    calculateAuthorScore = () => new Promise((resolve, reject) => {
         getUserData(this.authorId)
             .then(results => {
                 let json = JSON.parse(JSON.stringify(results));
-                console.log('TrueCount : %d', json[0]['TrueCount']);
-                console.log('FakeCount : %d', json[0]['FakeCount']);
+                //console.log('TrueCount : %d', json[0]['TrueCount']);
+                //console.log('FakeCount : %d', json[0]['FakeCount']);
 
-                
-                
+                resolve({
+                    trueCount: json[0]['TrueCount'],
+                    fakeCount: json[0]['FakeCount']
+                })
             }).catch(error => {
-                console.log(error);
-                
+                //console.log(error);
+                reject(error)
             });
+    })
 
-    }
+    calculateLikeScore = (client: TwitterApi) => new Promise(async (resolve, reject) => {
+        const users = await client.v2.tweetLikedBy(this.originalTweetId, { asPaginator: true });
+        
+        if(users.data.meta.result_count > 0) {
+            for (const user of users) {
+                resolve({
+                    trueCount: 0,
+                    fakeCount: 0
+                })
+            }
+        } else {
+            resolve({
+                trueCount: 0,
+                fakeCount: 0
+            })
+        }
+    })
+
+    calculateRetweetScore = (client: TwitterApi) => new Promise(async (resolve, reject) => {
+        const users = await client.v2.tweetLikedBy(this.originalTweetId, { asPaginator: true });
+        
+        if(users.data.meta.result_count > 0) {
+            for (const user of users) {
+                resolve({
+                    trueCount: 0,
+                    fakeCount: 0
+                })
+            }
+        } else {
+            resolve({
+                trueCount: 0,
+                fakeCount: 0
+            })
+        }
+    })
+    
 
 }

@@ -68,7 +68,7 @@ const client = new TwitterApi({
           await twitter.reply(client, replyMsg);
         } else {
           // 3rd party requester
-          //twitter.calculateScore(client);
+          twitter.calculateScore(client);
           
 
         }
