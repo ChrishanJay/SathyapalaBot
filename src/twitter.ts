@@ -88,14 +88,6 @@ export class Twitter {
 
 
     async calculateScore(client: TwitterApi) {
-        //const author = await client.v2.user(this.authorId, { 'user.fields': ['id', 'verified'] });
-
-
-        // this.calculateAuthorScore()
-        //     .then(results => {
-        //         console.log(results);
-                
-        //     })
 
         Promise.all([
             this.calculateAuthorScore(), 
