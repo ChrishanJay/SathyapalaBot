@@ -1,7 +1,6 @@
 import { TwitterApi } from 'twitter-api-v2'
 import { addAuthorData, addLikedData, addRetweetedData, getUserData } from './db';
 import { ResultSetHeader } from 'mysql2';
-import { TweetLikingUsersV2Paginator, TweetRetweetersUsersV2Paginator } from 'twitter-api-v2';
 
 
 export class Twitter {
@@ -13,6 +12,10 @@ export class Twitter {
     requesterUserName: string;
     tweetId: string;
     isGenuine: boolean;
+
+    LIKE_WEIGHT: number = 1;
+    RT_WEIGHT: number = 5;
+    AUTHOR_WEIGHT: number = 10;
 
     constructor(tweet: any) {
         this.tweet = tweet;
@@ -84,9 +87,6 @@ export class Twitter {
         
     }
 
-    
-
-
     async calculateScore(client: TwitterApi) {
 
         Promise.all([
@@ -95,7 +95,20 @@ export class Twitter {
             this.calculateRetweetScore(client)
         ])
         .then(results => {
-            console.log(results);
+            let json = JSON.parse(JSON.stringify(results));
+            let authorScores = json[0];
+            let likeScores = json[1];
+            let retweetScores = json[2];
+            
+            let totalTrueCount = authorScores['trueCount'] * this.AUTHOR_WEIGHT + likeScores['trueCount'] * this.LIKE_WEIGHT + retweetScores['trueCount'] * this.RT_WEIGHT;
+            let totalFakeCount = authorScores['fakeCount'] * this.AUTHOR_WEIGHT + likeScores['fakeCount'] * this.LIKE_WEIGHT + retweetScores['fakeCount'] * this.RT_WEIGHT;
+
+            console.log('Total True Count', totalTrueCount);
+            console.log('Total Fake Count', totalFakeCount);
+            
+            let finalScore = (totalTrueCount / (totalTrueCount+ totalFakeCount)) * 100;
+
+            console.log('Final Score: ', finalScore);
             
         })
 
@@ -104,20 +117,16 @@ export class Twitter {
 
     calculateAuthorScore = () => 
         new Promise((resolve, reject) => {
-            getUserData(this.authorId)
+            getUserData(this.authorId, 'is_author')
                 .then(results => {
                     let json = JSON.parse(JSON.stringify(results));
-                    //console.log('TrueCount : %d', json[0]['TrueCount']);
-                    //console.log('FakeCount : %d', json[0]['FakeCount']);
-
-                    //console.log(json);
                     
                     resolve({
                         trueCount: json[0]['TrueCount'],
                         fakeCount: json[0]['FakeCount']
                     })
                 }).catch(error => {
-                    //console.log(error);
+                    console.log(error);
                     reject(error)
                 });
         });
@@ -126,12 +135,32 @@ export class Twitter {
         const users = await client.v2.tweetLikedBy(this.originalTweetId, { asPaginator: true });
         
         if(users.data.meta.result_count > 0) {
+            let trueCount: number = 0;
+            let fakeCount: number = 0;
             for (const user of users) {
-                resolve({
-                    trueCount: 0,
-                    fakeCount: 0
-                })
+                let userPromise = new Promise((resolve, reject) => {
+                    getUserData(user.id, 'is_like')
+                        .then(results => {
+                            let json = JSON.parse(JSON.stringify(results));
+                            resolve(json);
+                        }).catch(error => {
+                            console.log(error);
+                            reject(error);
+                        });
+                });
+
+                await userPromise.then((result) => {
+                    let json = JSON.parse(JSON.stringify(result));
+                    
+                    trueCount = trueCount + json[0]['TrueCount'];
+                    fakeCount = fakeCount + json[0]['FakeCount'];
+                });
             }
+            
+            resolve({
+                trueCount: trueCount,
+                fakeCount: fakeCount
+            })
         } else {
             resolve({
                 trueCount: 0,
@@ -144,12 +173,32 @@ export class Twitter {
         const users = await client.v2.tweetLikedBy(this.originalTweetId, { asPaginator: true });
         
         if(users.data.meta.result_count > 0) {
+            let trueCount: number = 0;
+            let fakeCount: number = 0;
             for (const user of users) {
-                resolve({
-                    trueCount: user.id,
-                    fakeCount: 0
-                })
+                let userPromise = new Promise((resolve, reject) => {
+                    getUserData(user.id, 'is_retweet')
+                        .then(results => {
+                            let json = JSON.parse(JSON.stringify(results));
+                            resolve(json);
+                        }).catch(error => {
+                            console.log(error);
+                            reject(error);
+                        });
+                });
+
+                await userPromise.then((result) => {
+                    let json = JSON.parse(JSON.stringify(result));
+                    
+                    trueCount = trueCount + json[0]['TrueCount'];
+                    fakeCount = fakeCount + json[0]['FakeCount'];
+                });
             }
+            
+            resolve({
+                trueCount: trueCount,
+                fakeCount: fakeCount
+            })
         } else {
             resolve({
                 trueCount: 0,

@@ -81,14 +81,14 @@ import { TweetLikingUsersV2Paginator, TweetRetweetersUsersV2Paginator, UserV2Res
             })
         });
 
-    const getUserData =async (userID: string) => 
+    const getUserData =async (userID: string, columnName: string) => 
         new Promise((resolve, reject) => {
 
             let query: string = `SELECT 
-                                    COUNT(CASE WHEN user_id='${userID}' AND is_genuine=1 THEN 1 END) as TrueCount,
-                                    COUNT(CASE WHEN user_id='${userID}' AND is_genuine=0 THEN 1 END) as FakeCount
+                                    COUNT(CASE WHEN user_id='${userID}' AND ${columnName}=1 AND is_genuine=1 THEN 1 END) as TrueCount,
+                                    COUNT(CASE WHEN user_id='${userID}' AND ${columnName}=1 AND is_genuine=0 THEN 1 END) as FakeCount
                                 FROM users;`
-
+                                
             Connect()
             .then(connection => {
                 Query(connection, query)
