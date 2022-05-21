@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import { Twitter } from './twitter';
 import { Test } from './test';
 
+const PORT = process.env.PORT || 3001
 dotenv.config();
 const app = express();
 let twitter: Twitter;
@@ -94,4 +95,4 @@ const client = new TwitterApi({
 
 })();
 
-app.listen(5000, () => console.log('Server Running'));
+app.listen(PORT, () => console.log('Server Running on port: ', PORT));
