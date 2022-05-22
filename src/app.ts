@@ -1,7 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import { Twitter } from './twitter';
-import { Test } from './test';
 
 const PORT = process.env.PORT || 3001
 dotenv.config();
@@ -82,8 +81,6 @@ const client = new TwitterApi({
     // Emitted when a Twitter sent a signal to maintain connection active
     ETwitterStreamEvent.DataKeepAlive, () => {
       console.log('Twitter has a keep-alive packet.');
-      // let test: Test = new Test();
-      // test.test();
     }
   );
   
