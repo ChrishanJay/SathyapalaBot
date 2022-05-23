@@ -59,6 +59,8 @@ const client = new TwitterApi({
         await twitter.reply(client, replyMsg);
 
       } else {
+        console.log('Not an Approved Feeder');
+        
         let splitText = twitter.text.split(" ", 2);
         if (splitText[1].toUpperCase() === 'TRUE') {
           // Reject non approved data feeders
@@ -68,6 +70,8 @@ const client = new TwitterApi({
           await twitter.reply(client, replyMsg);
         } else {
           // 3rd party requester
+          console.log('Requesting');
+          
           twitter.calculateScore(client);
           
 

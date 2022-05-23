@@ -1,5 +1,5 @@
 import { TwitterApi } from 'twitter-api-v2'
-import { addAuthorData, addLikedData, addRetweetedData, getUserData, addLogs } from './db';
+import { addAuthorData, addLikedData, addRetweetedData, getUserData, addScoreLogs, addFeedLogs } from './db';
 import { ResultSetHeader } from 'mysql2';
 
 
@@ -17,6 +17,9 @@ export class Twitter {
     RT_WEIGHT: number = 5;
     AUTHOR_WEIGHT: number = 10;
     MIN_TH: number = 5;
+
+    likes_count: number = 0;
+    rt_count: number = 0;
 
     constructor(tweet: any) {
         this.tweet = tweet;
@@ -37,8 +40,9 @@ export class Twitter {
             console.log('Liked count for %s : %d', this.originalTweetId, users.data.data.length);
             addLikedData(users, this.originalTweetId, this.isGenuine)
             .then((results)=> {
-                let data = results as ResultSetHeader
-                console.log('Get Liked Users Result : ' + data.info);
+                let data = results as ResultSetHeader;
+                this.likes_count = users.data.data.length;
+                //console.log('Get Liked Users Result : ' + data.info);
             })
             .catch(error => {
                 console.log('Get Liked Users Error : ' + error);
@@ -57,7 +61,8 @@ export class Twitter {
             addRetweetedData(users, this.originalTweetId, this.isGenuine)
                 .then((results)=> {
                     let data = results as ResultSetHeader
-                    console.log('Get Retweeted Users Result : ' + data.info);
+                    this.rt_count = users.data.data.length;
+                    //console.log('Get Retweeted Users Result : ' + data.info);
                 })
                 .catch(error => {
                     console.log('Get Retweeted Users Error : ' + error);
@@ -75,6 +80,7 @@ export class Twitter {
             .then((results)=> {
                 let data = results as ResultSetHeader
                 console.log('Get Author Result : ' + data.affectedRows);
+                this.logFeeds()
             })
             .catch(error => {
                 console.log('Get Author Error : ' + error);
@@ -139,7 +145,7 @@ export class Twitter {
                         replyMsg = replyMsg +  '\nSathyapalaBot predicts ' + finalAuthorScore.toFixed(2) + '% genuineness for the OP based on ' + finalAuthorCount + ' tweets.'
                     }
 
-                    addLogs(this.originalTweetId, this.requester, finalScore, finalAuthorScore, finalAuthorCount, likedUsers.data.meta.result_count, rtUsers.data.meta.result_count)
+                    this.logScores(this.originalTweetId, this.requester, finalScore, finalAuthorScore, finalAuthorCount, likedUsers.data.meta.result_count, rtUsers.data.meta.result_count)
                     this.reply(client, replyMsg);
 
                 } else {
@@ -154,12 +160,26 @@ export class Twitter {
 
     }
 
-    addLogs = (tweet_id: string, requester: string, final_score: number, author_score: number, author_count: number, liked_count: number, rt_count: number) => 
+    logScores = (tweet_id: string, requester: string, final_score: number, author_score: number, author_count: number, liked_count: number, rt_count: number) => 
         new Promise((resolve, reject) => {
-            addLogs(tweet_id, requester, final_score, author_score, author_count, liked_count, rt_count)
+            addScoreLogs(tweet_id, requester, final_score, author_score, author_count, liked_count, rt_count)
                 .then(results => {
                     let data = results as ResultSetHeader
-                    console.log('Add Log : ' + data.info);
+                    console.log('Score Log : ' + data.info);
+                    
+                    resolve(data)
+                }).catch(error => {
+                    console.log(error);
+                    reject(error)
+                });
+        });
+
+    logFeeds = () => 
+        new Promise((resolve, reject) => {
+            addFeedLogs(this.tweetId, this.requester, this.authorId, this.likes_count, this.rt_count, this.isGenuine)
+                .then(results => {
+                    let data = results as ResultSetHeader
+                    console.log('Feed Log : ' + data.affectedRows);
                     
                     resolve(data)
                 }).catch(error => {

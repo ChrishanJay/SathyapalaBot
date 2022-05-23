@@ -108,10 +108,10 @@ import { TweetLikingUsersV2Paginator, TweetRetweetersUsersV2Paginator, UserV2Res
 
         });
 
-    const addLogs = async (tweet_id: string, requester: string, final_score: number, author_score: number, author_count: number, liked_count: number, rt_count: number) => 
+    const addScoreLogs = async (tweet_id: string, requester: string, final_score: number, author_score: number, author_count: number, liked_count: number, rt_count: number) => 
         new Promise((resolve, reject) => {
             
-            let query:string = `INSERT INTO SathyapalaBot.score_logs 
+            let query:string = `INSERT INTO score_logs 
                             (tweet_id, requester, final_score, author_score, author_count, liked_count, rt_count) 
                             VALUES('${tweet_id}', '${requester}', ${final_score}, ${author_score}, ${author_count}, ${liked_count}, ${rt_count});`;
 
@@ -134,4 +134,29 @@ import { TweetLikingUsersV2Paginator, TweetRetweetersUsersV2Paginator, UserV2Res
         });
 
 
-export { addLikedData, addRetweetedData, addAuthorData, getUserData, addLogs }
+    const addFeedLogs = async (tweet_id: string, requester: string, author_id: string, likes: number, rts: number, sentiment: boolean) => 
+        new Promise((resolve, reject) => {
+            
+            let query:string = `INSERT INTO feed_logs
+                            (tweet_id, requester, author_id, likes, rts, sentiment) 
+                            VALUES('${tweet_id}', '${requester}', ${author_id}, ${likes}, ${rts}, ${sentiment.toString()});`;
+
+            Connect()
+            .then(connection => {
+                Query(connection, query)
+                .then(results => {
+                    resolve(results);
+                })
+                .catch(error => {
+                    reject(error);
+                })
+                .finally(() => {
+                    connection.end();
+                })
+            })
+            .catch(error => {
+                reject(error);
+            })
+        });
+
+export { addLikedData, addRetweetedData, addAuthorData, getUserData, addScoreLogs, addFeedLogs }
