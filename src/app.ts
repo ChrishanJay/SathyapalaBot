@@ -45,7 +45,7 @@ const client = new TwitterApi({
   stream.on(
     // Emitted when a Twitter payload (a tweet or not, given the endpoint).
     ETwitterStreamEvent.Data, async (eventData: any) => {
-      //console.log('Twitter has sent something:', eventData);
+      console.log('Twitter has sent something:', eventData);
       twitter = new Twitter(eventData);
       console.log("Requester :" + twitter.requester);
       
@@ -56,7 +56,7 @@ const client = new TwitterApi({
         await twitter.getRetweetedUsers(client);
         await twitter.getAuthor(client);
 
-        let replyMsg: string = "Hello there! This is an academic research. DM for further information."
+        let replyMsg: string = "Hello there! This is for an academic research. DM for further information."
         await twitter.reply(client, replyMsg);
 
       } else {
@@ -71,16 +71,16 @@ const client = new TwitterApi({
           await twitter.reply(client, replyMsg);
         } else {
           // 3rd party requester
-          console.log('Requesting');
-          console.log('Tweet Text: ', twitter.text);
-          
-          
-          twitter.calculateScore(client);
-          
 
+          if(twitter.authorId != '907886923678711809') {
+            // Not a reply to @SathyapalaBot
+
+            console.log('Requesting');
+            console.log('Tweet Text: ', twitter.text);
+            twitter.calculateScore(client);
+          }
         }
       }
-      
     }
   );
   
