@@ -45,7 +45,7 @@ const client = new TwitterApi({
   stream.on(
     // Emitted when a Twitter payload (a tweet or not, given the endpoint).
     ETwitterStreamEvent.Data, async (eventData: any) => {
-      console.log('Twitter has sent something:', eventData);
+      //console.log('Twitter has sent something:', eventData);
       twitter = new Twitter(eventData);
       console.log("Requester :" + twitter.requester);
       
