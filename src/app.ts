@@ -55,7 +55,7 @@ const client = new TwitterApi({
         await twitter.getRetweetedUsers(client);
         await twitter.getAuthor(client);
 
-        let replyMsg: string = "Hello there! This is an academic research. DM for further information. Only userId and verfied status collected for this research."
+        let replyMsg: string = "Hello there! This is an academic research. DM for further information."
         await twitter.reply(client, replyMsg);
 
       } else {
