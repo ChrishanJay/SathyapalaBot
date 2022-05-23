@@ -123,6 +123,14 @@ export class Twitter {
                 let authorScores = json[0];
                 let likeScores = json[1];
                 let retweetScores = json[2];
+
+                console.log('Author True Count: ', authorScores['trueCount'] as number * this.AUTHOR_WEIGHT);
+                console.log('Likes True Count: ', likeScores['trueCount'] as number * this.LIKE_WEIGHT);
+                console.log('RTs True Count: ', retweetScores['trueCount'] as number * this.RT_WEIGHT);
+
+                console.log('Author Fake Count: ', authorScores['fakeCount'] as number * this.AUTHOR_WEIGHT);
+                console.log('Likes Fake Count: ', likeScores['fakeCount'] as number * this.LIKE_WEIGHT);
+                console.log('RTs Fake Count: ', retweetScores['fakeCount'] as number * this.RT_WEIGHT);
                 
                 let totalTrueCount = authorScores['trueCount'] as number * this.AUTHOR_WEIGHT + likeScores['trueCount'] * this.LIKE_WEIGHT + retweetScores['trueCount'] * this.RT_WEIGHT;
                 let totalFakeCount = authorScores['fakeCount'] as number * this.AUTHOR_WEIGHT + likeScores['fakeCount'] * this.LIKE_WEIGHT + retweetScores['fakeCount'] * this.RT_WEIGHT;
@@ -165,7 +173,7 @@ export class Twitter {
             addScoreLogs(tweet_id, requester, final_score, author_score, author_count, liked_count, rt_count)
                 .then(results => {
                     let data = results as ResultSetHeader
-                    console.log('Score Log : ' + data.info);
+                    console.log('Score Log : ' + data.affectedRows);
                     
                     resolve(data)
                 }).catch(error => {
