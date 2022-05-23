@@ -87,7 +87,7 @@ const client = new TwitterApi({
   stream.on(
     // Emitted when a Twitter sent a signal to maintain connection active
     ETwitterStreamEvent.DataKeepAlive, () => {
-      console.log('Twitter has a keep-alive packet.');
+      //console.log('Twitter has a keep-alive packet.');
     }
   );
   
