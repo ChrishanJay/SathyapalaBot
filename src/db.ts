@@ -108,5 +108,30 @@ import { TweetLikingUsersV2Paginator, TweetRetweetersUsersV2Paginator, UserV2Res
 
         });
 
+    const addLogs = async (tweet_id: string, requester: string, final_score: number, author_score: number, author_count: number, liked_count: number, rt_count: number) => 
+        new Promise((resolve, reject) => {
+            
+            let query:string = `INSERT INTO SathyapalaBot.score_logs 
+                            (tweet_id, requester, final_score, author_score, author_count, liked_count, rt_count) 
+                            VALUES('${tweet_id}', '${requester}', ${final_score}, ${author_score}, ${author_count}, ${liked_count}, ${rt_count});`;
 
-export { addLikedData, addRetweetedData, addAuthorData, getUserData }
+            Connect()
+            .then(connection => {
+                Query(connection, query)
+                .then(results => {
+                    resolve(results);
+                })
+                .catch(error => {
+                    reject(error);
+                })
+                .finally(() => {
+                    connection.end();
+                })
+            })
+            .catch(error => {
+                reject(error);
+            })
+        });
+
+
+export { addLikedData, addRetweetedData, addAuthorData, getUserData, addLogs }

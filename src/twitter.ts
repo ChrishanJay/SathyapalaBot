@@ -1,5 +1,5 @@
 import { TwitterApi } from 'twitter-api-v2'
-import { addAuthorData, addLikedData, addRetweetedData, getUserData } from './db';
+import { addAuthorData, addLikedData, addRetweetedData, getUserData, addLogs } from './db';
 import { ResultSetHeader } from 'mysql2';
 
 
@@ -16,6 +16,7 @@ export class Twitter {
     LIKE_WEIGHT: number = 1;
     RT_WEIGHT: number = 5;
     AUTHOR_WEIGHT: number = 10;
+    MIN_TH: number = 5;
 
     constructor(tweet: any) {
         this.tweet = tweet;
@@ -87,33 +88,85 @@ export class Twitter {
         
     }
 
+    noDataReply(client: TwitterApi) {
+        console.log('Not enough data');
+        let replyMsg: string = 'Sorry, Not enough data to calculate a genuineness score.';
+        this.reply(client, replyMsg);
+    }
+
     async calculateScore(client: TwitterApi) {
 
-        Promise.all([
-            this.calculateAuthorScore(), 
-            this.calculateLikeScore(client),
-            this.calculateRetweetScore(client)
-        ])
-        .then(results => {
-            let json = JSON.parse(JSON.stringify(results));
-            let authorScores = json[0];
-            let likeScores = json[1];
-            let retweetScores = json[2];
-            
-            let totalTrueCount = authorScores['trueCount'] * this.AUTHOR_WEIGHT + likeScores['trueCount'] * this.LIKE_WEIGHT + retweetScores['trueCount'] * this.RT_WEIGHT;
-            let totalFakeCount = authorScores['fakeCount'] * this.AUTHOR_WEIGHT + likeScores['fakeCount'] * this.LIKE_WEIGHT + retweetScores['fakeCount'] * this.RT_WEIGHT;
+        let finalAuthorScore: number = 0;
+        let finalAuthorCount: number = 0;
 
-            console.log('Total True Count', totalTrueCount);
-            console.log('Total Fake Count', totalFakeCount);
-            
-            let finalScore = (totalTrueCount / (totalTrueCount+ totalFakeCount)) * 100;
+        const likedUsers = await client.v2.tweetLikedBy(this.originalTweetId, { asPaginator: true });
+        const rtUsers = await client.v2.tweetRetweetedBy(this.originalTweetId, { asPaginator: true });
 
-            console.log('Final Score: ', finalScore);
-            
-        })
+        console.log('Liked Count: ', likedUsers.data.meta.result_count);
+        console.log('RT Count', rtUsers.data.meta.result_count);
+        
+        if (likedUsers.data.meta.result_count > this.MIN_TH && rtUsers.data.meta.result_count > this.MIN_TH) {
+
+            Promise.all([
+                this.calculateAuthorScore(), 
+                this.calculateLikeScore(client),
+                this.calculateRetweetScore(client)
+            ])
+            .then(results => {
+                let json = JSON.parse(JSON.stringify(results));
+                let authorScores = json[0];
+                let likeScores = json[1];
+                let retweetScores = json[2];
+                
+                let totalTrueCount = authorScores['trueCount'] as number * this.AUTHOR_WEIGHT + likeScores['trueCount'] * this.LIKE_WEIGHT + retweetScores['trueCount'] * this.RT_WEIGHT;
+                let totalFakeCount = authorScores['fakeCount'] as number * this.AUTHOR_WEIGHT + likeScores['fakeCount'] * this.LIKE_WEIGHT + retweetScores['fakeCount'] * this.RT_WEIGHT;
+    
+                console.log('Total True Count', totalTrueCount);
+                console.log('Total Fake Count', totalFakeCount);
+    
+                if(totalTrueCount > this.MIN_TH && totalFakeCount > this.MIN_TH) {
+                    let finalScore = (totalTrueCount / (totalTrueCount+ totalFakeCount)) * 100;
+                    console.log('Final Score: ', finalScore.toFixed(2));
+
+                    let replyMsg: string = 'SathyapalaBot predicts ' + finalScore.toFixed(2) + '% genuineness for this tweet.';
+
+                    if((authorScores['trueCount'] as number + authorScores['fakeCount'] as number) > this.MIN_TH ) {
+                        
+                        finalAuthorScore = (authorScores['trueCount'] as number / (authorScores['trueCount'] as number + authorScores['fakeCount'] as number)) * 100;
+                        
+                        finalAuthorCount = authorScores['trueCount'] as number + authorScores['fakeCount'] as number;
+                        
+                        replyMsg = replyMsg +  '\nSathyapalaBot predicts ' + finalAuthorScore.toFixed(2) + '% genuineness for the OP based on ' + finalAuthorCount + ' tweets.'
+                    }
+
+                    addLogs(this.originalTweetId, this.requester, finalScore, finalAuthorScore, finalAuthorCount, likedUsers.data.meta.result_count, rtUsers.data.meta.result_count)
+                    this.reply(client, replyMsg);
+
+                } else {
+                    console.log('Not enough data in the system');
+                    this.noDataReply(client);
+                }
+            });
+
+        } else {
+            this.noDataReply(client);
+        }
 
     }
 
+    addLogs = (tweet_id: string, requester: string, final_score: number, author_score: number, author_count: number, liked_count: number, rt_count: number) => 
+        new Promise((resolve, reject) => {
+            addLogs(tweet_id, requester, final_score, author_score, author_count, liked_count, rt_count)
+                .then(results => {
+                    let data = results as ResultSetHeader
+                    console.log('Add Log : ' + data.info);
+                    
+                    resolve(data)
+                }).catch(error => {
+                    console.log(error);
+                    reject(error)
+                });
+        });
 
     calculateAuthorScore = () => 
         new Promise((resolve, reject) => {
