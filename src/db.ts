@@ -108,12 +108,24 @@ import { TweetLikingUsersV2Paginator, TweetRetweetersUsersV2Paginator, UserV2Res
 
         });
 
-    const addScoreLogs = async (tweet_id: string, requester: string, final_score: number, author_score: number, author_count: number, liked_count: number, rt_count: number) => 
+    const addScoreLogs = async (
+            tweet_id: string, 
+            requester: string, 
+            final_score: number, 
+            author_score: number, 
+            atc: number, 
+            afc: number, 
+            ltc: number,
+            lfc: number, 
+            rtc: number, 
+            rfc: number, 
+            tul: number, 
+            tur: number) => 
         new Promise((resolve, reject) => {
             
             let query:string = `INSERT INTO score_logs 
-                            (tweet_id, requester, final_score, author_score, author_count, liked_count, rt_count) 
-                            VALUES('${tweet_id}', '${requester}', ${final_score}, ${author_score}, ${author_count}, ${liked_count}, ${rt_count});`;
+                            (tweet_id, requester, final_score, author_score, author_true_count, author_fake_count, liked_true_count, liked_fake_count, rt_true_count, rt_fake_count, total_user_like, total_user_rt) 
+                            VALUES('${tweet_id}', '${requester}', ${final_score}, ${author_score}, ${atc}, ${afc}, ${ltc}, ${lfc}, ${rtc}, ${rfc}, ${tul}, ${tur});`;
 
             Connect()
             .then(connection => {

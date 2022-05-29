@@ -108,10 +108,12 @@ export class Twitter {
         const likedUsers = await client.v2.tweetLikedBy(this.originalTweetId, { asPaginator: true });
         const rtUsers = await client.v2.tweetRetweetedBy(this.originalTweetId, { asPaginator: true });
 
-        console.log('Liked Count: ', likedUsers.data.meta.result_count);
-        console.log('RT Count', rtUsers.data.meta.result_count);
+        let tul: number = likedUsers.data.meta.result_count;
+        let tur: number = rtUsers.data.meta.result_count
+        console.log('Liked Count: ', tul);
+        console.log('RT Count', tur);
         
-        if (likedUsers.data.meta.result_count > this.MIN_TH && rtUsers.data.meta.result_count > this.MIN_TH) {
+        if (tul > this.MIN_TH && tur > this.MIN_TH) {
 
             Promise.all([
                 this.calculateAuthorScore(), 
@@ -124,16 +126,24 @@ export class Twitter {
                 let likeScores = json[1];
                 let retweetScores = json[2];
 
-                console.log('Author True Count: ', authorScores['trueCount'] as number * this.AUTHOR_WEIGHT);
-                console.log('Likes True Count: ', likeScores['trueCount'] as number * this.LIKE_WEIGHT);
-                console.log('RTs True Count: ', retweetScores['trueCount'] as number * this.RT_WEIGHT);
+                let atc = authorScores['trueCount'] as number;
+                let ltc = likeScores['trueCount'] as number;
+                let rtc = retweetScores['trueCount'] as number;
 
-                console.log('Author Fake Count: ', authorScores['fakeCount'] as number * this.AUTHOR_WEIGHT);
-                console.log('Likes Fake Count: ', likeScores['fakeCount'] as number * this.LIKE_WEIGHT);
-                console.log('RTs Fake Count: ', retweetScores['fakeCount'] as number * this.RT_WEIGHT);
+                let afc = authorScores['fakeCount'] as number;
+                let lfc = likeScores['fakeCount'] as number;
+                let rfc = retweetScores['fakeCount'] as number;
+
+                console.log('Author True Count: ', atc);
+                console.log('Likes True Count: ', ltc);
+                console.log('RTs True Count: ', rtc);
+
+                console.log('Author Fake Count: ', afc);
+                console.log('Likes Fake Count: ', lfc);
+                console.log('RTs Fake Count: ', rfc);
                 
-                let totalTrueCount = authorScores['trueCount'] as number * this.AUTHOR_WEIGHT + likeScores['trueCount'] * this.LIKE_WEIGHT + retweetScores['trueCount'] * this.RT_WEIGHT;
-                let totalFakeCount = authorScores['fakeCount'] as number * this.AUTHOR_WEIGHT + likeScores['fakeCount'] * this.LIKE_WEIGHT + retweetScores['fakeCount'] * this.RT_WEIGHT;
+                let totalTrueCount = atc * this.AUTHOR_WEIGHT + ltc * this.LIKE_WEIGHT + rtc * this.RT_WEIGHT;
+                let totalFakeCount = afc * this.AUTHOR_WEIGHT + lfc * this.LIKE_WEIGHT + rfc * this.RT_WEIGHT;
     
                 console.log('Total True Count', totalTrueCount);
                 console.log('Total Fake Count', totalFakeCount);
@@ -144,16 +154,16 @@ export class Twitter {
 
                     let replyMsg: string = 'SathyapalaBot predicts ' + finalScore.toFixed(2) + '% genuineness for this tweet.';
 
-                    if((authorScores['trueCount'] as number + authorScores['fakeCount'] as number) > this.MIN_TH ) {
+                    if((atc + afc) > this.MIN_TH ) {
                         
-                        finalAuthorScore = (authorScores['trueCount'] as number / (authorScores['trueCount'] as number + authorScores['fakeCount'] as number)) * 100;
+                        finalAuthorScore = (atc / (atc + afc)) * 100;
                         
-                        finalAuthorCount = authorScores['trueCount'] as number + authorScores['fakeCount'] as number;
+                        finalAuthorCount = atc + afc;
                         
                         replyMsg = replyMsg +  '\nSathyapalaBot predicts ' + finalAuthorScore.toFixed(2) + '% genuineness for the OP based on ' + finalAuthorCount + ' tweets.'
                     }
 
-                    this.logScores(this.originalTweetId, this.requester, finalScore, finalAuthorScore, finalAuthorCount, likedUsers.data.meta.result_count, rtUsers.data.meta.result_count)
+                    this.logScores(this.originalTweetId, this.requester, finalScore, finalAuthorScore, atc, afc, ltc, lfc, rtc, rfc, tul, tur)
                     this.reply(client, replyMsg);
 
                 } else {
@@ -168,9 +178,9 @@ export class Twitter {
 
     }
 
-    logScores = (tweet_id: string, requester: string, final_score: number, author_score: number, author_count: number, liked_count: number, rt_count: number) => 
+    logScores = (tweet_id: string, requester: string, final_score: number, author_score: number, atc: number, afc: number, ltc: number, lfc: number, rtc: number, rfc: number, tul: number, tur: number) => 
         new Promise((resolve, reject) => {
-            addScoreLogs(tweet_id, requester, final_score, author_score, author_count, liked_count, rt_count)
+            addScoreLogs(tweet_id, requester, final_score, author_score, atc, afc, ltc, lfc, rtc, rfc, tul, tur)
                 .then(results => {
                     let data = results as ResultSetHeader
                     console.log('Score Log : ' + data.affectedRows);
